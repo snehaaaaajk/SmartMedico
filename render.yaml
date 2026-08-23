@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: smartmedico
+    env: node
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: npm install --no-fund --no-audit
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: SMARTMEDICO_ADMIN_EMAIL
+        value: admin@smartmedico.local
+      - key: SMARTMEDICO_ADMIN_PASSWORD
+        generateValue: true

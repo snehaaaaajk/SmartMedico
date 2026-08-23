@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SmartMedico | Secure Patient-Doctor Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ================= TOP BAR ================= -->
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="19" stroke="currentColor" stroke-width="2"/>
+      <path d="M6 20H13L16 11L22 29L25 20H34" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span>Smart<em>Medico</em></span>
+  </div>
+  <div class="topbar-right" id="topbarRight"></div>
+</header>
+
+<!-- ================= GATE (role select + auth) ================= -->
+<main id="gate" class="gate">
+  <section class="hero">
+    <p class="eyebrow">Modern care coordination</p>
+    <h1>Healthcare that feels <span class="ink-underline">smarter</span>,<br>safer, and more <span class="ink-underline">human</span>.</h1>
+    <p class="hero-sub">SmartMedico gives patients secure access, doctors time-boxed review windows, and every encounter a transparent, traceable story.</p>
+    <svg class="pulse-divider" viewBox="0 0 600 40" preserveAspectRatio="none">
+      <path d="M0 20 H230 L245 6 L262 34 L278 20 H600" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </section>
+
+  <section class="portal-picker" id="portalPicker">
+    <button class="portal-card" data-role="patient">
+      <span class="portal-tag">01</span>
+      <h3>I'm a Patient</h3>
+      <p>Track your care journey, review prescriptions, monitor reminders, and stay informed about every visit.</p>
+      <span class="portal-cta">Continue as patient →</span>
+    </button>
+    <button class="portal-card" data-role="doctor">
+      <span class="portal-tag">02</span>
+      <h3>I'm a Doctor</h3>
+      <p>Open a verified 25-minute session, review the right records, and document updates with clinical clarity.</p>
+      <span class="portal-cta">Continue as doctor →</span>
+    </button>
+    <button class="portal-card portal-card-admin" data-role="admin">
+      <span class="portal-tag">03</span>
+      <h3>System Admin</h3>
+      <p>Review patient volume, doctor activity, and recent safety events from a single operational view.</p>
+      <span class="portal-cta">Open admin panel →</span>
+    </button>
+  </section>
+
+  <!-- Auth forms (populated by JS) -->
+  <section class="auth-wrap" id="authWrap" hidden>
+    <button class="back-link" id="backToPicker">← choose a different role</button>
+    <div class="auth-card" id="authCard"></div>
+  </section>
+</main>
+
+<!-- ================= PATIENT DASHBOARD ================= -->
+<main id="patientDash" class="dash" hidden>
+  <nav class="dash-nav">
+    <button class="dash-nav-item active" data-panel="overview">Overview</button>
+    <button class="dash-nav-item" data-panel="prescriptions">Prescriptions</button>
+    <button class="dash-nav-item" data-panel="reminders">Reminders</button>
+    <button class="dash-nav-item" data-panel="audit">Access Log</button>
+  </nav>
+
+  <section class="dash-panel" id="panel-overview">
+    <div class="panel-head">
+      <h2>Welcome back<span id="patientNameOverview"></span></h2>
+      <p class="muted">Generate a code below and hand it to your doctor at your visit. It opens their access for exactly 25 minutes.</p>
+    </div>
+    <div class="otp-generator card">
+      <div class="otp-generator-left">
+        <p class="label-eyebrow">Visit access code</p>
+        <div id="otpDisplay" class="otp-display">— — — — — —</div>
+        <p class="muted small" id="otpMeta">No active code. Generate one for your doctor.</p>
+      </div>
+      <button class="btn btn-primary" id="genAccessOtp">Generate code</button>
+    </div>
+    <div class="grid-2">
+      <div class="card stat-card">
+        <p class="label-eyebrow">Prescriptions on file</p>
+        <p class="stat-num" id="statRxCount">0</p>
+      </div>
+      <div class="card stat-card">
+        <p class="label-eyebrow">Doctor visits logged</p>
+        <p class="stat-num" id="statVisitCount">0</p>
+      </div>
+    </div>
+    <div id="pendingHistoryOtp" class="card history-otp-card" hidden>
+      <p class="label-eyebrow">History request</p>
+      <p id="historyOtpText" class="muted"></p>
+      <div class="otp-display" id="historyOtpDisplay"></div>
+    </div>
+  </section>
+
+  <section class="dash-panel" id="panel-prescriptions" hidden>
+    <div class="panel-head"><h2>Prescription history</h2></div>
+    <div id="prescriptionList" class="list"></div>
+  </section>
+
+  <section class="dash-panel" id="panel-reminders" hidden>
+    <div class="panel-head"><h2>AI reminders</h2><p class="muted">Generated from your prescription history.</p></div>
+    <div id="reminderList" class="list"></div>
+  </section>
+
+  <section class="dash-panel" id="panel-audit" hidden>
+    <div class="panel-head"><h2>Access &amp; activity log</h2><p class="muted">Every time a doctor touches your chart, it lands here first.</p></div>
+    <div id="auditList" class="timeline"></div>
+  </section>
+</main>
+
+<!-- ================= DOCTOR DASHBOARD ================= -->
+<main id="doctorDash" class="dash" hidden>
+  <section class="dash-panel" id="doctorHome">
+    <div class="panel-head">
+      <h2>Good to see you<span id="doctorNameOverview"></span></h2>
+      <p class="muted">Enter the code your patient shares with you to open a 25-minute access window.</p>
+    </div>
+    <div class="card otp-entry-card">
+      <p class="label-eyebrow">Patient access code</p>
+      <div class="otp-entry-row">
+        <input type="text" id="accessOtpInput" maxlength="6" placeholder="000000" inputmode="numeric" />
+        <button class="btn btn-primary" id="verifyAccessOtp">Open session</button>
+      </div>
+      <p class="muted small" id="accessOtpError"></p>
+    </div>
+  </section>
+
+  <!-- Active session view -->
+  <section class="dash-panel" id="doctorSession" hidden>
+    <div class="session-bar">
+      <div>
+        <p class="label-eyebrow">Active session</p>
+        <h3 id="sessionPatientName">—</h3>
+      </div>
+      <div class="timer-ring-wrap">
+        <svg viewBox="0 0 80 80" class="timer-ring">
+          <circle cx="40" cy="40" r="34" class="ring-bg"/>
+          <circle cx="40" cy="40" r="34" class="ring-fg" id="ringFg"/>
+        </svg>
+        <div class="timer-text" id="timerText">25:00</div>
+      </div>
+      <button class="btn btn-ghost" id="endSessionBtn">End visit</button>
+    </div>
+
+    <div class="grid-2 session-grid">
+      <div class="card">
+        <p class="label-eyebrow">Recent visits (read only)</p>
+        <div id="doctorRecentRx" class="list compact"></div>
+      </div>
+
+      <div class="card" id="historyCard">
+        <p class="label-eyebrow">Full history</p>
+        <div id="historyLocked">
+          <p class="muted small">Locked. Ask the patient for a separate history code.</p>
+          <button class="btn btn-secondary" id="requestHistoryOtp">Request history access</button>
+        </div>
+        <div id="historyOtpEntry" hidden>
+          <div class="otp-entry-row">
+            <input type="text" id="historyOtpInput" maxlength="6" placeholder="000000" inputmode="numeric" />
+            <button class="btn btn-secondary" id="verifyHistoryOtp">Unlock</button>
+          </div>
+          <p class="muted small" id="historyOtpError"></p>
+        </div>
+        <div id="historyUnlockedList" class="list compact" hidden></div>
+      </div>
+    </div>
+
+    <div class="card rx-writer">
+      <p class="label-eyebrow">Write prescription</p>
+      <div id="medicineRows"></div>
+      <button class="btn btn-ghost small" id="addMedicineRow">+ add medicine</button>
+      <textarea id="rxNotes" placeholder="Visit notes (optional)"></textarea>
+      <button class="btn btn-primary" id="submitRx">Save prescription</button>
+      <p class="muted small" id="rxSuccess"></p>
+    </div>
+  </section>
+
+  <section class="dash-panel" id="sessionEndedPanel" hidden>
+    <div class="ended-state">
+      <svg viewBox="0 0 60 60" width="48" height="48"><circle cx="30" cy="30" r="28" stroke="currentColor" stroke-width="2" fill="none"/><path d="M18 30L26 38L42 20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h3>Access window closed</h3>
+      <p class="muted">This visit's changes were saved automatically. Start a new session with a fresh code from the patient.</p>
+      <button class="btn btn-primary" id="newSessionBtn">Start another session</button>
+    </div>
+  </section>
+</main>
+
+<main id="adminDash" class="dash" hidden>
+  <section class="dash-panel" id="adminPanel">
+    <div class="panel-head">
+      <h2>Operations overview</h2>
+      <p class="muted">Live operational snapshot of patient activity, doctor access, and recent alerts.</p>
+    </div>
+    <div class="grid-2 admin-grid">
+      <div class="card stat-card">
+        <p class="label-eyebrow">Patients</p>
+        <p class="stat-num" id="adminPatientCount">0</p>
+      </div>
+      <div class="card stat-card">
+        <p class="label-eyebrow">Doctors</p>
+        <p class="stat-num" id="adminDoctorCount">0</p>
+      </div>
+      <div class="card stat-card">
+        <p class="label-eyebrow">Active sessions</p>
+        <p class="stat-num" id="adminSessionCount">0</p>
+      </div>
+      <div class="card stat-card">
+        <p class="label-eyebrow">Prescriptions</p>
+        <p class="stat-num" id="adminPrescriptionCount">0</p>
+      </div>
+    </div>
+    <div class="card">
+      <p class="label-eyebrow">Recent activity</p>
+      <div id="adminActivityList" class="timeline"></div>
+    </div>
+  </section>
+</main>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
