@@ -1,4 +1,4 @@
-# Vantage Health — Secure Patient-Doctor Healthcare Platform
+# SmartMedico — Secure Patient-Doctor Healthcare Platform
 
 A working prototype of the platform described in the brief: dual-role auth,
 OTP-gated 25-minute doctor sessions, no-edit prescriptions, patient-visible
